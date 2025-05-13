@@ -4,10 +4,11 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "dev": "vite",
+    "fmt": "prettier --write .",
+    "serve": "vite preview",
+    "start": "vite"
   },
   "license": "MIT",
   "devDependencies": {
