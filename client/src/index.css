@@ -1,6 +1,7 @@
 body {
   /* TODO Adjust to system color scheme. */
   background: #03162e;
+  color: white;
   display: flex;
   flex-direction: column;
   font-family:

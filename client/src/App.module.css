@@ -5,6 +5,10 @@
   text-align: center;
 }
 
+.devTools {
+  flex: 1;
+}
+
 .logo {
   /* animation: logo-spin infinite 20s linear; */
   height: calc(10px + 2vmin);
@@ -26,6 +30,20 @@
   color: white;
 }
 
+.metaTools {
+  text-align: right;
+}
+
+.resultArea {
+  /* border: 1px solid red; */
+  flex: 1;
+}
+
+.sourceArea {
+  /* border: 1px solid red; */
+  flex: 1;
+}
+
 .title {
   flex: 1;
   padding: 0 1rem;
@@ -34,11 +52,17 @@
   top: -0.1rem;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.toolbar {
+  display: flex;
+  flex-direction: row;
+  font-size: 120%;
+  padding: 0.4rem 1rem;
+  text-align: left;
+}
+
+.workArea {
+  /* border: 1px solid red; */
+  display: flex;
+  flex: 1;
+  flex-direction: row;
 }

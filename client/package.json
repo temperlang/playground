@@ -12,12 +12,14 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "monaco-editor": "0.48.0",
     "prettier": "catalog:",
     "typescript": "catalog:",
     "vite": "^6.0.0",
     "vite-plugin-solid": "^2.11.6"
   },
   "dependencies": {
-    "solid-js": "^1.9.5"
+    "solid-js": "^1.9.5",
+    "solid-monaco": "^0.3.0"
   }
 }

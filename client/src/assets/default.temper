@@ -1,0 +1,16 @@
+class Rectangle(
+  public width: Float64,
+  public height: Float64,
+) {
+  public area(): Float64 {
+    width * height
+  }
+
+  public toString(): String {
+    "Rectangle: ${width} x ${height}"
+  }
+}
+
+let rectangle = { width: 1.5, height: 2.0 };
+console.log("${rectangle}");
+console.log("Area: ${rectangle.area()}");
