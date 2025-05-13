@@ -1,6 +1,6 @@
 import type { Component } from "solid-js";
 
-import logo from "./logo.svg";
+import logo from "./assets/temper-logo-256.png";
 import styles from "./App.module.css";
 
 const App: Component = () => {
@@ -8,17 +8,15 @@ const App: Component = () => {
     <div class={styles.App}>
       <header class={styles.header}>
         <img src={logo} class={styles.logo} alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
+        <div class={styles.title}>Temper Language Playground</div>
+        {/* <a
           class={styles.link}
           href="https://github.com/solidjs/solid"
           target="_blank"
           rel="noopener noreferrer"
         >
           Learn Solid
-        </a>
+        </a> */}
       </header>
     </div>
   );
