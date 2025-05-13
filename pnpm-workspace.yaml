@@ -3,4 +3,5 @@ packages:
   - server
 
 catalog:
+  prettier: ^3.5.3
   typescript: ^5.8.3

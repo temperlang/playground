@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.17",
+    "prettier": "catalog:",
     "tsx": "^4.7.1",
     "typescript": "catalog:"
   }
