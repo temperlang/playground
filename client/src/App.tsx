@@ -1,5 +1,7 @@
-import type { Component } from "solid-js";
+import { Button } from "@kobalte/core/button";
+import { Tabs } from "@kobalte/core/tabs";
 import { MonacoEditor } from "solid-monaco";
+import type { Component } from "solid-js";
 import type * as monacoEditor from "monaco-editor";
 
 import logo from "./assets/temper-logo-256.png";
@@ -49,14 +51,33 @@ const App: Component = () => {
         </a> */}
       </header>
       <div class={styles.toolbar}>
-        <div class={styles.devTools}>Build</div>
+        <div class={styles.devTools}>
+          <Button onClick={() => alert("hi")}>Build</Button>
+        </div>
         <div class={styles.metaTools}>Share</div>
       </div>
       <div class={styles.workArea}>
         <div class={styles.sourceArea}>
           <TemperEditor />
         </div>
-        <div class={styles.resultArea}>Result Area</div>
+        <div class={styles.resultArea}>
+          <Tabs>
+            <Tabs.List>
+              <Tabs.Trigger value="csharp">C#</Tabs.Trigger>
+              <Tabs.Trigger value="java">Java</Tabs.Trigger>
+              <Tabs.Trigger value="js">JS</Tabs.Trigger>
+              <Tabs.Trigger value="lua">Lua</Tabs.Trigger>
+              <Tabs.Trigger value="py">Python</Tabs.Trigger>
+              <Tabs.Trigger value="rust">Rust</Tabs.Trigger>
+            </Tabs.List>
+            <Tabs.Content value="csharp">Totally C# here.</Tabs.Content>
+            <Tabs.Content value="java">Totally Java here.</Tabs.Content>
+            <Tabs.Content value="js">Totally JS here.</Tabs.Content>
+            <Tabs.Content value="lua">Totally Lua here.</Tabs.Content>
+            <Tabs.Content value="py">Totally Python here.</Tabs.Content>
+            <Tabs.Content value="rust">Totally Rust here.</Tabs.Content>
+          </Tabs>
+        </div>
       </div>
       <div class={styles.toolbar}>Legal Stuff</div>
     </div>

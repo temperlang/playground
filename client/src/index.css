@@ -18,3 +18,26 @@ code {
   font-family:
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
+
+[role="tablist"] {
+  display: flex;
+  border-bottom: 1px solid #203045;
+}
+
+[role="tab"] {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #afb5bd;
+  font-weight: bold;
+}
+
+[role="tabpanel"] {
+  padding: 0.5rem 1rem;
+}
+
+[role="tab"][aria-selected="true"] {
+  border-bottom: 2px solid white;
+  color: white;
+}
