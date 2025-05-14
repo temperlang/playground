@@ -1,12 +1,27 @@
 import { Button } from "@kobalte/core/button";
 import { Tabs } from "@kobalte/core/tabs";
 import { MonacoEditor } from "solid-monaco";
-import type { Component } from "solid-js";
+import { createSignal, type Component } from "solid-js";
 import type * as monacoEditor from "monaco-editor";
 
 import logo from "./assets/temper-logo-256.png";
 import styles from "./App.module.css";
 import defaultSource from "./assets/default.temper?raw";
+
+const BuildButton = () => {
+  const [response, setResponse] = createSignal("");
+  const handleClick = async () => {
+    const response = await fetch("http://localhost:3001/");
+    const text = await response.text();
+    setResponse(text);
+  };
+  return (
+    <>
+      <Button onClick={handleClick}>Build</Button>
+      <div>{response()}</div>
+    </>
+  );
+};
 
 const TemperEditor = () => {
   const handleMount = (
@@ -52,7 +67,7 @@ const App: Component = () => {
       </header>
       <div class={styles.toolbar}>
         <div class={styles.devTools}>
-          <Button onClick={() => alert("hi")}>Build</Button>
+          <BuildButton />
         </div>
         <div class={styles.metaTools}>Share</div>
       </div>

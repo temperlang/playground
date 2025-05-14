@@ -6,7 +6,10 @@
 }
 
 .devTools {
+  display: flex;
   flex: 1;
+  flex-direction: row;
+  gap: 1rem;
 }
 
 .logo {
