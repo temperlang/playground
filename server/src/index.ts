@@ -1,18 +1,25 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import PQueue from "p-queue";
+import { Watch } from "./watch.ts";
 
-const main = () => {
+const main = async () => {
+  const queue = new PQueue({ concurrency: 1 });
+  const watch = new Watch();
+  await watch.start();
+  process.on("exit", () => {
+    // This doesn't seem to work, but it feels right to try.
+    watch.stop();
+  });
   const app = new Hono();
   app.use("/*", cors({ origin: "http://localhost:3000" }));
-  app.get("/", (context) => {
-    return context.text("Hi there!");
+  app.get("/", async (context) => {
+    return context.text("Running. Post for actual processing.");
   });
-  app.post("/close", (context) => {
-    return context.json({});
-  });
-  app.post("/open", (context) => {
-    return context.json({});
+  app.post("/", async (context) => {
+    const text = await queue.add(async () => "Hi!") as string;
+    return context.text(text);
   });
   serve(
     {
@@ -25,4 +32,4 @@ const main = () => {
   );
 };
 
-main();
+await main();

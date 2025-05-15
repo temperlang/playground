@@ -11,13 +11,16 @@ import defaultSource from "./assets/default.temper?raw";
 const BuildButton = () => {
   const [response, setResponse] = createSignal("");
   const handleClick = async () => {
-    const response = await fetch("http://localhost:3001/");
+    const response = await fetch("http://localhost:3001/", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
     const text = await response.text();
     setResponse(text);
   };
   return (
     <>
-      <Button onClick={handleClick}>Build</Button>
+      <Button onClick={handleClick}>Build Temper</Button>
       <div>{response()}</div>
     </>
   );
