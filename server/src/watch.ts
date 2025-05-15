@@ -4,22 +4,38 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { Stream } from "node:stream";
+import { promisify } from "node:util";
+import treeKill from "tree-kill";
+import stripAnsi from "strip-ansi";
 
 export type BuildRequest = {
   source: string;
 };
 
 export class Watch {
-  chunks: string[] = [];
+  listener: ((message: string) => void) | undefined;
   proc: ChildProcessByStdio<null, null, Stream.Readable> | undefined;
   root: string | undefined;
   workDir: string | undefined;
 
   async build(request: BuildRequest) {
     console.log(request);
-    await writeFile(this.srcFile(), request.source);
-    await new Promise((resolve) => setTimeout(resolve, 2_000));
-    console.log(this.chunks);
+    // Don't await write because we want to be awaiting messages before yield.
+    writeFile(this.srcFile(), request.source);
+    const chunks = [] as string[];
+    while (true) {
+      const chunk = await new Promise((resolve: (message: string) => void) => {
+        this.listener = resolve;
+      });
+      chunks.push(stripAnsi(chunk));
+      if (/^Finished build/m.test(chunk)) {
+        break;
+      }
+    }
+    console.log(chunks);
+    this.listener = undefined;
+    // Reset watch to avoid memory leaks.
+    await this.prepare();
     return request.source;
   }
 
@@ -27,15 +43,22 @@ export class Watch {
     const workDir = this.workDir!;
     // Prep dirs, ensuring empty src and temper.out.
     if (this.proc) {
-      this.proc.kill("SIGKILL");
+      try {
+        await treeKillAsync(this.proc.pid!, "SIGKILL");
+      } catch (error) {
+        console.error(error);
+      }
       this.proc = undefined;
     }
     await mkdir(workDir, { recursive: true });
     const srcDir = this.srcDir();
-    await rmDeep(srcDir);
-    await rmDeep(join(workDir, "temper.out"));
+    try {
+      await rmDeep(srcDir);
+      await rmDeep(join(workDir, "temper.out"));
+    } catch (error) {
+      console.error(error);
+    }
     // Make sure we have empty source.
-    this.chunks.length = 0;
     await mkdir(srcDir, { recursive: true });
     await writeFile(join(srcDir, "config.temper.md"), config);
     await writeFile(this.srcFile(), "");
@@ -46,9 +69,10 @@ export class Watch {
       shell: true,
       stdio: ["ignore", "inherit", "pipe"],
     });
-    this.proc.stderr.on("data", (chunk) => {
-      this.chunks.push(chunk.toString("utf8"));
-      console.log(this.chunks);
+    this.proc.stderr.on("data", (chunkBuffer) => {
+      const chunk = chunkBuffer.toString("utf8");
+      console.log([chunk]);
+      this.listener?.call(undefined, chunk);
     });
   }
 
@@ -61,15 +85,15 @@ export class Watch {
   }
 
   async start() {
-    this.root = await mkdtemp(join(tmpdir(), "temper-watch-"));
+    this.root = await mkdtemp(join(tmpdir(), "temper-playground-"));
     this.workDir = join(this.root, "work");
     console.log(this.root);
     await this.prepare();
   }
 
   stop() {
-    if (this.proc != null) {
-      this.proc.kill("SIGKILL");
+    if (this.proc) {
+      treeKill(this.proc.pid!, "SIGKILL");
     }
     if (this.root != null) {
       rmDeepSync(this.root);
@@ -84,6 +108,15 @@ const rmDeep = async (dir: string) => {
 const rmDeepSync = (dir: string) => {
   rmSync(dir, { force: true, recursive: true });
 };
+
+const treeKillAsync = promisify(
+  // Explicit sig because overloads.
+  treeKill as (
+    pid: number,
+    signal?: string | number,
+    callback?: (error?: Error) => void,
+  ) => void,
+);
 
 const config: string = `
 # Work
