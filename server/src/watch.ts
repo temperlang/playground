@@ -5,11 +5,23 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import type { Stream } from "node:stream";
 
+export type BuildRequest = {
+  source: string;
+};
+
 export class Watch {
   chunks: string[] = [];
   proc: ChildProcessByStdio<null, null, Stream.Readable> | undefined;
   root: string | undefined;
   workDir: string | undefined;
+
+  async build(request: BuildRequest) {
+    console.log(request);
+    await writeFile(this.srcFile(), request.source);
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
+    console.log(this.chunks);
+    return request.source;
+  }
 
   async prepare() {
     const workDir = this.workDir!;
@@ -19,14 +31,14 @@ export class Watch {
       this.proc = undefined;
     }
     await mkdir(workDir, { recursive: true });
-    const srcDir = join(workDir, "src");
+    const srcDir = this.srcDir();
     await rmDeep(srcDir);
     await rmDeep(join(workDir, "temper.out"));
     // Make sure we have empty source.
     this.chunks.length = 0;
     await mkdir(srcDir, { recursive: true });
     await writeFile(join(srcDir, "config.temper.md"), config);
-    await writeFile(join(srcDir, "work.temper"), "");
+    await writeFile(this.srcFile(), "");
     console.log(workDir);
     // Start watch process, so we're primed for an actual request.
     this.proc = spawn("temper", ["watch"], {
@@ -38,6 +50,14 @@ export class Watch {
       this.chunks.push(chunk.toString("utf8"));
       console.log(this.chunks);
     });
+  }
+
+  srcDir() {
+    return join(this.workDir!, "src");
+  }
+
+  srcFile(): string {
+    return join(this.srcDir(), "work.temper");
   }
 
   async start() {

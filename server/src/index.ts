@@ -2,7 +2,7 @@ import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import PQueue from "p-queue";
-import { Watch } from "./watch.ts";
+import { type BuildRequest, Watch } from "./watch.ts";
 
 const main = async () => {
   const queue = new PQueue({ concurrency: 1 });
@@ -18,7 +18,11 @@ const main = async () => {
     return context.text("Running. Post for actual processing.");
   });
   app.post("/", async (context) => {
-    const text = await queue.add(async () => "Hi!") as string;
+    const request = (await context.req.json()) as BuildRequest;
+    // TODO Queue actual code building.
+    const text = (await queue.add(async () => {
+      return await watch.build(request);
+    })) as string;
     return context.text(text);
   });
   serve(
