@@ -25,15 +25,17 @@ code {
 }
 
 [role="tab"] {
-  padding: 0.5rem 1rem;
-  border: none;
   background: none;
-  cursor: pointer;
+  border: none;
   color: #afb5bd;
+  cursor: pointer;
   font-weight: bold;
+  padding: 0.5rem 1rem;
 }
 
 [role="tabpanel"] {
+  display: flex;
+  flex: 1;
   padding: 0.5rem 1rem;
 }
 

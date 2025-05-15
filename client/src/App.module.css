@@ -5,6 +5,11 @@
   text-align: center;
 }
 
+a,
+.link {
+  color: white;
+}
+
 .devTools {
   display: flex;
   flex: 1;
@@ -12,10 +17,16 @@
   gap: 1rem;
 }
 
-.logo {
-  /* animation: logo-spin infinite 20s linear; */
-  height: calc(10px + 2vmin);
-  pointer-events: none;
+.footer {
+  display: flex;
+  flex-direction: row;
+  font-size: 80%;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+}
+
+.footer a {
+  text-decoration: none;
 }
 
 .header {
@@ -24,13 +35,14 @@
   color: white;
   display: flex;
   flex-direction: row;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 1.5vmin);
   justify-content: center;
   padding: 0.5rem 1rem;
 }
 
-.link {
-  color: white;
+.logo {
+  height: calc(10px + 1.5vmin);
+  pointer-events: none;
 }
 
 .metaTools {
@@ -38,7 +50,15 @@
 }
 
 .resultArea {
-  /* border: 1px solid red; */
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: left;
+}
+
+.resultTabs {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   text-align: left;
 }
@@ -83,4 +103,5 @@
   display: flex;
   flex: 1;
   flex-direction: row;
+  gap: 0.2rem;
 }

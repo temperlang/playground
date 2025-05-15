@@ -22,7 +22,7 @@ export const TemperEditor = (props: TemperEditorProps) => {
       },
     });
     monaco.editor.setTheme("temper-dark");
-    editor.updateOptions({ minimap: { enabled: false } });
+    editor.updateOptions({ contextmenu: false, minimap: { enabled: false } });
   };
   return (
     <MonacoEditor

@@ -32,14 +32,16 @@ const App: Component = () => {
         <div class={styles.devTools}>
           <Button onClick={postBuild}>Build Temper</Button>
         </div>
-        <div class={styles.metaTools}>Share</div>
+        <div class={styles.metaTools}>
+          <Button>Share</Button>
+        </div>
       </div>
       <div class={styles.workArea}>
         <div class={styles.sourceArea}>
           <TemperEditor onChange={onSourceChange} value={defaultSource} />
         </div>
         <div class={styles.resultArea}>
-          <Tabs>
+          <Tabs class={styles.resultTabs}>
             <Tabs.List>
               <Tabs.Trigger value="csharp">C#</Tabs.Trigger>
               <Tabs.Trigger value="java">Java</Tabs.Trigger>
@@ -51,15 +53,31 @@ const App: Component = () => {
             <Tabs.Content value="csharp">
               <CodeView value={response()} />
             </Tabs.Content>
-            <Tabs.Content value="java">Totally Java here.</Tabs.Content>
-            <Tabs.Content value="js">Totally JS here.</Tabs.Content>
-            <Tabs.Content value="lua">Totally Lua here.</Tabs.Content>
-            <Tabs.Content value="py">Totally Python here.</Tabs.Content>
-            <Tabs.Content value="rust">Totally Rust here.</Tabs.Content>
+            <Tabs.Content value="java">
+              <CodeView value="" />
+            </Tabs.Content>
+            <Tabs.Content value="js">
+              <CodeView value="" />
+            </Tabs.Content>
+            <Tabs.Content value="lua">
+              <CodeView value="" />
+            </Tabs.Content>
+            <Tabs.Content value="py">
+              <CodeView value="" />
+            </Tabs.Content>
+            <Tabs.Content value="rust">
+              <CodeView value="" />
+            </Tabs.Content>
           </Tabs>
         </div>
       </div>
-      <div class={styles.toolbar}>Legal Stuff</div>
+      <div class={styles.footer}>
+        By Temper contributors. Copyright © 2020-2025 Temper Systems Inc. |
+        Legal:&nbsp;
+        <a href="https://temperlang.github.io/tld/legal/eula/">
+          End User License Agreement (EULA)
+        </a>
+      </div>
     </div>
   );
 };
