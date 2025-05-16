@@ -7,6 +7,7 @@ import type { Stream } from "node:stream";
 import { promisify } from "node:util";
 import treeKill from "tree-kill";
 import stripAnsi from "strip-ansi";
+import { gatherTemperOut } from "./gather.ts";
 
 export type BuildRequest = {
   source: string;
@@ -33,6 +34,8 @@ export class Watch {
       }
     }
     console.log(chunks);
+    const results = await gatherTemperOut(this.temperOut());
+    console.log(results);
     this.listener = undefined;
     // Reset watch to avoid memory leaks.
     await this.prepare();
@@ -54,7 +57,7 @@ export class Watch {
     const srcDir = this.srcDir();
     try {
       await rmDeep(srcDir);
-      await rmDeep(join(workDir, "temper.out"));
+      await rmDeep(this.temperOut());
     } catch (error) {
       console.error(error);
     }
@@ -82,6 +85,10 @@ export class Watch {
 
   srcFile(): string {
     return join(this.srcDir(), "work.temper");
+  }
+
+  temperOut() {
+    return join(this.workDir!, "temper.out");
   }
 
   async start() {
