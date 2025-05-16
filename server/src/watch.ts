@@ -7,10 +7,15 @@ import type { Stream } from "node:stream";
 import { promisify } from "node:util";
 import treeKill from "tree-kill";
 import stripAnsi from "strip-ansi";
-import { gatherTemperOut } from "./gather.ts";
+import { gatherTemperOut, type Translation } from "./gather.js";
 
 export type BuildRequest = {
   source: string;
+};
+
+export type BuildResponse = {
+  errors: any[];
+  translations: Translation[];
 };
 
 export class Watch {
@@ -34,12 +39,12 @@ export class Watch {
       }
     }
     console.log(chunks);
-    const results = await gatherTemperOut(this.temperOut());
-    console.log(results);
+    const translations = await gatherTemperOut(this.temperOut());
+    // console.log(translations);
     this.listener = undefined;
     // Reset watch to avoid memory leaks.
     await this.prepare();
-    return request.source;
+    return { errors: [], translations } as BuildResponse;
   }
 
   async prepare() {

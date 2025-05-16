@@ -1,16 +1,11 @@
-import { readdir } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 export const gatherTemperOut = async (temperOut: string) => {
-  return Object.assign(
-    ...(await Promise.all([
-      gatherDir({ backend: "csharp", temperOut }),
-      gatherDir({ backend: "java", temperOut }),
-      gatherDir({ backend: "js", temperOut }),
-      gatherDir({ backend: "lua", temperOut }),
-      gatherDir({ backend: "py", temperOut }),
-      gatherDir({ backend: "rust", temperOut }),
-    ])),
+  return await Promise.all(
+    (Object.keys(backendInfos) as Backend[]).map((backend) =>
+      gatherDir({ backend, temperOut }),
+    ),
   );
 };
 
@@ -36,12 +31,27 @@ type GatherDirArgs = {
   temperOut: string;
 };
 
-const gatherDir = async (args: GatherDirArgs) => {
-  const { ext, path, reject } = backendInfos[args.backend] as BackendInfo;
-  const dir = join(args.temperOut, args.backend, path);
-  const files = (await readdir(dir)).filter(
-    (name) => name.endsWith(ext) && !(reject && reject.test(name)),
+export type File = {
+  name: string;
+  content: string;
+};
+
+export type Translation = {
+  backend: Backend;
+  files: File[];
+};
+
+const gatherDir = async (args: GatherDirArgs): Promise<Translation> => {
+  const { backend } = args;
+  const { ext, path, reject } = backendInfos[backend] as BackendInfo;
+  const dir = join(args.temperOut, backend, path);
+  const files = await Promise.all(
+    (await readdir(dir))
+      .filter((name) => name.endsWith(ext) && !(reject && reject.test(name)))
+      .map(async (name) => ({
+        name,
+        content: await readFile(join(dir, name), { encoding: "utf8" }),
+      })),
   );
-  // TODO Read files.
-  return { [args.backend]: files };
+  return { backend, files };
 };
