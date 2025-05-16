@@ -1,13 +1,11 @@
 import { Button } from "@kobalte/core/button";
-import { Tabs } from "@kobalte/core/tabs";
-import { createSignal, For, type Component } from "solid-js";
-
-import logo from "./assets/temper-logo-256.png";
+import { createSignal, type Component } from "solid-js";
 import styles from "./App.module.css";
+import logo from "./assets/temper-logo-256.png";
 import defaultSource from "./assets/default.temper?raw";
-import { TemperEditor } from "./editor";
-import { CodeView } from "./codeview";
-import { backendInfos, BuildResponse } from "./types";
+import { ResultPane } from "./ResultPane";
+import { TemperEditor } from "./TemperEditor";
+import type { BuildResponse } from "./types";
 
 const App: Component = () => {
   const [source, setSource] = createSignal(defaultSource);
@@ -52,41 +50,7 @@ const App: Component = () => {
           <TemperEditor onChange={onSourceChange} value={defaultSource} />
         </div>
         <div class={styles.resultArea}>
-          <Tabs class={styles.resultTabs}>
-            <Tabs.List>
-              <For each={response().translations}>
-                {({ backend }) => (
-                  <Tabs.Trigger value={backend}>
-                    {backendInfos[backend].name}
-                  </Tabs.Trigger>
-                )}
-              </For>
-            </Tabs.List>
-            <For each={response().translations}>
-              {(translation) => (
-                <Tabs.Content value={translation.backend}>
-                  <Tabs>
-                    <Tabs.List>
-                      <For each={translation.files}>
-                        {(file) => (
-                          <Tabs.Trigger value={file.name}>
-                            {file.name}
-                          </Tabs.Trigger>
-                        )}
-                      </For>
-                    </Tabs.List>
-                    <For each={translation.files}>
-                      {(file) => (
-                        <Tabs.Content value={file.name}>
-                          <CodeView value={file.content} />
-                        </Tabs.Content>
-                      )}
-                    </For>
-                  </Tabs>
-                </Tabs.Content>
-              )}
-            </For>
-          </Tabs>
+          <ResultPane response={response()}></ResultPane>
         </div>
       </div>
       <div class={styles.footer}>

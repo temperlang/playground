@@ -26,6 +26,7 @@ export class Watch {
 
   async build(request: BuildRequest) {
     console.log(request);
+    // TODO Track if we're midbuild and if so, wait for build to finish before writing.
     // Don't await write because we want to be awaiting messages before yield.
     writeFile(this.srcFile(), request.source);
     const chunks = [] as string[];

@@ -50,21 +50,10 @@ a,
 }
 
 .resultArea {
-  display: flex;
-  flex-direction: column;
   flex: 1;
-  text-align: left;
-}
-
-.resultTabs {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  text-align: left;
 }
 
 .sourceArea {
-  /* border: 1px solid red; */
   flex: 1;
 }
 
