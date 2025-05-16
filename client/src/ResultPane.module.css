@@ -1,11 +1,38 @@
+.code {
+  align-self: flex-start;
+  flex: 1;
+  /* height: 0px; */
+  overflow: auto;
+  padding: 0 1rem;
+}
+
+.codeBox {
+  display: flex;
+  flex-direction: row;
+}
+
 .files {
+  /* display: flex;
+  flex: 1;
+  flex-direction: column; */
   padding: 0;
   padding-top: 0.5rem;
 }
 
-.resultTabs {
+/* .filesTabs {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+} */
+
+/* .resultTabs {
   display: flex;
   flex-direction: column;
   flex: 1;
   text-align: left;
+} */
+
+.ruler {
+  border: 1px solid skyblue;
+  width: 0;
 }

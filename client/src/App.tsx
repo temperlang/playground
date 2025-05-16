@@ -1,5 +1,5 @@
 import { Button } from "@kobalte/core/button";
-import { createSignal, type Component } from "solid-js";
+import { createSignal, onCleanup, onMount, type Component } from "solid-js";
 import styles from "./App.module.css";
 import logo from "./assets/temper-logo-256.png";
 import defaultSource from "./assets/default.temper?raw";
@@ -31,8 +31,27 @@ const App: Component = () => {
     }
     setResponse(buildResponse);
   };
+  let app: HTMLDivElement;
+  let workArea: HTMLDivElement;
+  const resize = () => {
+    const total = window.innerHeight;
+    let used = 0;
+    for (const kid of app!.childNodes) {
+      if (kid !== workArea!) {
+        used += (kid as HTMLElement).getBoundingClientRect().height;
+      }
+    }
+    workArea!.style.height = `${total - used}px`;
+  };
+  onMount(() => {
+    window.addEventListener("resize", resize);
+    requestAnimationFrame(resize);
+  });
+  onCleanup(() => {
+    window.removeEventListener("resize", resize);
+  });
   return (
-    <div class={styles.App}>
+    <div ref={app!} class={styles.App}>
       <header class={styles.header}>
         <img src={logo} class={styles.logo} alt="logo" />
         <div class={styles.title}>Temper Language Playground</div>
@@ -45,7 +64,7 @@ const App: Component = () => {
           <Button>Share</Button>
         </div>
       </div>
-      <div class={styles.workArea}>
+      <div ref={workArea!} class={styles.workArea}>
         <div class={styles.sourceArea}>
           <TemperEditor onChange={onSourceChange} value={defaultSource} />
         </div>

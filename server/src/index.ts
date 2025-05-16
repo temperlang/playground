@@ -13,7 +13,10 @@ const main = async () => {
     watch.stop();
   });
   const app = new Hono();
-  app.use("/*", cors({ origin: "http://localhost:3000" }));
+  app.use(
+    "/*",
+    cors({ origin: ["http://localhost:3000", "http://localhost:4173"] }),
+  );
   app.get("/", async (context) => {
     return context.text("Running. Post for actual processing.");
   });
