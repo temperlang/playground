@@ -1,16 +1,20 @@
 import { Button } from "@kobalte/core/button";
 import { Tabs } from "@kobalte/core/tabs";
-import { createSignal, type Component } from "solid-js";
+import { createSignal, For, type Component } from "solid-js";
 
 import logo from "./assets/temper-logo-256.png";
 import styles from "./App.module.css";
 import defaultSource from "./assets/default.temper?raw";
 import { TemperEditor } from "./editor";
 import { CodeView } from "./codeview";
+import { backendInfos, BuildResponse } from "./types";
 
 const App: Component = () => {
   const [source, setSource] = createSignal(defaultSource);
-  const [response, setResponse] = createSignal("");
+  const [response, setResponse] = createSignal<BuildResponse>({
+    errors: [],
+    translations: [],
+  });
   const onSourceChange = (value: string) => {
     setSource(value);
   };
@@ -19,8 +23,15 @@ const App: Component = () => {
       method: "POST",
       body: JSON.stringify({ source: source() }),
     });
-    const text = await response.text();
-    setResponse(text);
+    const buildResponse = (await response.json()) as BuildResponse;
+    // They might come sorted, but ensure in frontend.
+    buildResponse.translations.sort((a, b) =>
+      a.backend.localeCompare(b.backend),
+    );
+    for (const translation of buildResponse.translations) {
+      translation.files.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    setResponse(buildResponse);
   };
   return (
     <div class={styles.App}>
@@ -43,31 +54,38 @@ const App: Component = () => {
         <div class={styles.resultArea}>
           <Tabs class={styles.resultTabs}>
             <Tabs.List>
-              <Tabs.Trigger value="csharp">C#</Tabs.Trigger>
-              <Tabs.Trigger value="java">Java</Tabs.Trigger>
-              <Tabs.Trigger value="js">JS</Tabs.Trigger>
-              <Tabs.Trigger value="lua">Lua</Tabs.Trigger>
-              <Tabs.Trigger value="py">Python</Tabs.Trigger>
-              <Tabs.Trigger value="rust">Rust</Tabs.Trigger>
+              <For each={response().translations}>
+                {({ backend }) => (
+                  <Tabs.Trigger value={backend}>
+                    {backendInfos[backend].name}
+                  </Tabs.Trigger>
+                )}
+              </For>
             </Tabs.List>
-            <Tabs.Content value="csharp">
-              <CodeView value={response()} />
-            </Tabs.Content>
-            <Tabs.Content value="java">
-              <CodeView value="" />
-            </Tabs.Content>
-            <Tabs.Content value="js">
-              <CodeView value="" />
-            </Tabs.Content>
-            <Tabs.Content value="lua">
-              <CodeView value="" />
-            </Tabs.Content>
-            <Tabs.Content value="py">
-              <CodeView value="" />
-            </Tabs.Content>
-            <Tabs.Content value="rust">
-              <CodeView value="" />
-            </Tabs.Content>
+            <For each={response().translations}>
+              {(translation) => (
+                <Tabs.Content value={translation.backend}>
+                  <Tabs>
+                    <Tabs.List>
+                      <For each={translation.files}>
+                        {(file) => (
+                          <Tabs.Trigger value={file.name}>
+                            {file.name}
+                          </Tabs.Trigger>
+                        )}
+                      </For>
+                    </Tabs.List>
+                    <For each={translation.files}>
+                      {(file) => (
+                        <Tabs.Content value={file.name}>
+                          <CodeView value={file.content} />
+                        </Tabs.Content>
+                      )}
+                    </For>
+                  </Tabs>
+                </Tabs.Content>
+              )}
+            </For>
           </Tabs>
         </div>
       </div>
