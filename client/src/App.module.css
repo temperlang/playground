@@ -50,7 +50,7 @@ a,
 }
 
 .resultArea {
-  border: 1px solid red;
+  /* border: 1px solid red; */
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -92,7 +92,6 @@ a,
 
 .workArea {
   display: flex;
-  /* flex: 1; */
   flex-direction: row;
   gap: 0.2rem;
 }
