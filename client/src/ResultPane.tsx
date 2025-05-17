@@ -43,6 +43,7 @@ export const ResultPane = (props: ResultPaneProps) => {
       {/* Seems to work better out here than in actual tab panels. */}
       <div class={styles.code}>
         <CodeView
+          language={backend()}
           value={
             response()
               .translations.find((it) => it.backend == backend())

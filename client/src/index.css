@@ -19,6 +19,10 @@ code {
     source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
+.hljs {
+  background-color: transparent !important;
+}
+
 [role="tablist"] {
   border-bottom: 1px solid #203045;
   display: flex;
