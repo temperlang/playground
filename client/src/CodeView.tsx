@@ -14,9 +14,9 @@ export const CodeView = (props: CodeViewProps) => {
     // Need to assign this to convince solid to update the element.
     code!.textContent = props.value;
     requestAnimationFrame(() => {
-      code!.removeAttribute('data-highlighted');
+      code!.removeAttribute("data-highlighted");
       hljs.highlightElement(code!);
-    })
+    });
   });
   return (
     <pre
@@ -29,7 +29,9 @@ export const CodeView = (props: CodeViewProps) => {
         "white-space": "pre-wrap",
       }}
     >
-      <code ref={code!} class={`language-${props.language}`}>{props.value}</code>
+      <code ref={code!} class={`language-${props.language}`}>
+        {props.value}
+      </code>
     </pre>
   );
 };

@@ -20,13 +20,23 @@ export type BuildRequest = {
 };
 
 export type BuildResponse = {
-  errors: any[];
+  errors: MarkerData[];
   translations: Translation[];
 };
 
 export type File = {
   name: string;
   content: string;
+};
+
+// Subset of https://microsoft.github.io/monaco-editor/typedoc/interfaces/editor.IMarkerData.html
+export type MarkerData = {
+  endColumn: number;
+  endLineNumber: number;
+  message: string;
+  // severity: MarkerSeverity; // TODO? Always error level for now?
+  startColumn: number;
+  startLineNumber: number;
 };
 
 export type Translation = {

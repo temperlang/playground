@@ -1,27 +1,53 @@
 import { Button } from "@kobalte/core/button";
+import { MarkerSeverity } from "monaco-editor";
 import { createSignal, onCleanup, onMount, type Component } from "solid-js";
 import styles from "./App.module.css";
 import logo from "./assets/temper-logo-256.png";
 import defaultSource from "./assets/default.temper?raw";
 import { ResultPane } from "./ResultPane";
-import { TemperEditor } from "./TemperEditor";
-import type { BuildResponse } from "./types";
+import { Monaco, MonacoEditor, TemperEditor } from "./TemperEditor";
+import type { BuildResponse, MarkerData } from "./types";
 
 const App: Component = () => {
-  const [source, setSource] = createSignal(defaultSource);
+  let source = defaultSource;
+  let sourceVersion = 0;
   const [response, setResponse] = createSignal<BuildResponse>({
     errors: [],
     translations: [],
   });
-  const onSourceChange = (value: string) => {
-    setSource(value);
+  let monaco: Monaco | undefined;
+  let monacoEditor: MonacoEditor | undefined;
+  const setMarkers = (markers: MarkerData[]) => {
+    // Dodge actual component updates to Monaco. Instead directly tweak things.
+    monaco!.editor.setModelMarkers(
+      monacoEditor!.getModel()!,
+      "playground",
+      markers.map((marker) => ({ severity: MarkerSeverity.Error, ...marker })),
+    );
   };
+  const onMountEditor = (
+    mountedMonaco: Monaco,
+    mountedEditor: MonacoEditor,
+  ) => {
+    monaco = mountedMonaco;
+    monacoEditor = mountedEditor;
+  };
+  const onSourceChange = (value: string) => {
+    source = value;
+    sourceVersion += 1;
+    setMarkers([]);
+  };
+  let postedVersion = 0;
   const postBuild = async () => {
+    postedVersion = sourceVersion;
     const response = await fetch("http://localhost:3001/", {
       method: "POST",
-      body: JSON.stringify({ source: source() }),
+      body: JSON.stringify({ source }),
     });
     const buildResponse = (await response.json()) as BuildResponse;
+    if (postedVersion == sourceVersion) {
+      setMarkers(buildResponse.errors);
+    }
     // They might come sorted, but ensure in frontend.
     buildResponse.translations.sort((a, b) =>
       a.backend.localeCompare(b.backend),
@@ -66,7 +92,11 @@ const App: Component = () => {
       </div>
       <div ref={workArea!} class={styles.workArea}>
         <div class={styles.sourceArea}>
-          <TemperEditor onChange={onSourceChange} value={defaultSource} />
+          <TemperEditor
+            onChange={onSourceChange}
+            onMount={onMountEditor}
+            value={defaultSource}
+          />
         </div>
         <div class={styles.resultArea}>
           <ResultPane response={response()}></ResultPane>

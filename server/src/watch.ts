@@ -8,6 +8,7 @@ import { promisify } from "node:util";
 import treeKill from "tree-kill";
 import stripAnsi from "strip-ansi";
 import { gatherTemperOut, type Translation } from "./gather.js";
+import { parseErrors } from "./errors.js";
 
 export type BuildRequest = {
   source: string;
@@ -25,7 +26,7 @@ export class Watch {
   workDir: string | undefined;
 
   async build(request: BuildRequest) {
-    console.log(request);
+    // console.log(request);
     // TODO Track if we're midbuild and if so, wait for build to finish before writing.
     // Don't await write because we want to be awaiting messages before yield.
     writeFile(this.srcFile(), request.source);
@@ -40,12 +41,13 @@ export class Watch {
       }
     }
     console.log(chunks);
+    const errors = parseErrors(chunks, request.source);
     const translations = await gatherTemperOut(this.temperOut());
     // console.log(translations);
     this.listener = undefined;
     // Reset watch to avoid memory leaks.
     await this.prepare();
-    return { errors: [], translations } as BuildResponse;
+    return { errors, translations } as BuildResponse;
   }
 
   async prepare() {
