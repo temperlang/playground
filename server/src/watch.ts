@@ -19,25 +19,53 @@ export type BuildResponse = {
   translations: Translation[];
 };
 
+// Strategy here:
+// Prime temper watch in a temp dir, because the first build is usually slower.
+// Usually wait for build #0 to finish, although a request can sneak in before.
+// Handle requests in one-at-a-time async in-memory work queue.
+// Any request kicks off a new build #1 that hopefully finishes fast.
+// Return results.
+// Kill temper watch to avoid memory leaks, then start again to reprime.
+// If requests are occasional, users get fast second builds.
+// If requests are continuous, they get to wait for slow first builds.
+// TODO This can be simplified with continuous watch if we fix leaks.
+// TODO We can also avoid waiting for build #0 to finish if we stabilize cancel.
+// TODO Although if we have an ongoing watch, build #0 rarely happens.
+
 export class Watch {
+  buildOngoing = false;
   listener: ((message: string) => void) | undefined;
   proc: ChildProcessByStdio<null, null, Stream.Readable> | undefined;
   root: string | undefined;
   workDir: string | undefined;
 
   async build(request: BuildRequest) {
-    // console.log(request);
-    // TODO Track if we're midbuild and if so, wait for build to finish before writing.
+    // Track if we're midbuild and if so, wait for build to finish before writing.
+    // That's because I've seen it hang on attempted cancel of current build.
+    awaitAllClear: while (true) {
+      if (!this.buildOngoing) {
+        break awaitAllClear;
+      }
+      console.log("Awaiting all clear ...");
+      await new Promise((resolve: (message: string) => void) => {
+        this.listener = resolve;
+      });
+    }
     // Don't await write because we want to be awaiting messages before yield.
     writeFile(this.srcFile(), request.source);
     const chunks = [] as string[];
-    while (true) {
+    let ourBuildStarted = false;
+    watchBuildUntilDone: while (true) {
       const chunk = await new Promise((resolve: (message: string) => void) => {
         this.listener = resolve;
       });
       chunks.push(stripAnsi(chunk));
-      if (/^Finished build/m.test(chunk)) {
-        break;
+      // Watch for our build to start then also to finish.
+      if (this.buildOngoing && !ourBuildStarted) {
+        ourBuildStarted = true;
+      }
+      if (ourBuildStarted && !this.buildOngoing) {
+        break watchBuildUntilDone;
       }
     }
     console.log(chunks);
@@ -75,6 +103,7 @@ export class Watch {
     await writeFile(this.srcFile(), "");
     console.log(workDir);
     // Start watch process, so we're primed for an actual request.
+    // We don't just keep watch on forever because it leaks memory.
     this.proc = spawn("temper", ["watch"], {
       cwd: workDir,
       shell: true,
@@ -82,6 +111,12 @@ export class Watch {
     });
     this.proc.stderr.on("data", (chunkBuffer) => {
       const chunk = chunkBuffer.toString("utf8");
+      // TODO Risk of getting start and finished in same chunk?
+      if (/^Watch starting build/m.test(chunk)) {
+        this.buildOngoing = true;
+      } else if (/^Finished build/m.test(chunk)) {
+        this.buildOngoing = false;
+      }
       console.log([chunk]);
       this.listener?.call(undefined, chunk);
     });
