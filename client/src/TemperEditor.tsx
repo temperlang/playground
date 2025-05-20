@@ -1,13 +1,18 @@
-import type * as monacoEditor from "monaco-editor";
+import * as monacoEditor from "monaco-editor";
 import { MonacoEditor as EditorComponent } from "solid-monaco";
+import { MarkerData } from "./types";
 
 export type Monaco = typeof monacoEditor;
 export type MonacoEditor = monacoEditor.editor.IStandaloneCodeEditor;
 
 export type TemperEditorProps = {
   onChange: (value: string) => void;
-  onMount?: (monaco: Monaco, editor: MonacoEditor) => void;
+  onMount?: (state: TemperEditorState) => void;
   value: string;
+};
+
+export type TemperEditorState = {
+  setMarkers: (markers: MarkerData[]) => void;
 };
 
 export const TemperEditor = (props: TemperEditorProps) => {
@@ -24,7 +29,19 @@ export const TemperEditor = (props: TemperEditorProps) => {
     });
     monaco.editor.setTheme("temper-dark");
     editor.updateOptions({ contextmenu: false, minimap: { enabled: false } });
-    props.onMount?.call(undefined, monaco, editor);
+    props.onMount?.call(undefined, {
+      setMarkers(markers: MarkerData[]) {
+        // Dodge actual component updates to Monaco. Instead directly tweak things.
+        monaco.editor.setModelMarkers(
+          editor.getModel()!,
+          "playground",
+          markers.map((marker) => ({
+            severity: monacoEditor.MarkerSeverity.Error,
+            ...marker,
+          })),
+        );
+      },
+    });
   };
   return (
     <EditorComponent
