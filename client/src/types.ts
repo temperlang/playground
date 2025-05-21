@@ -39,6 +39,10 @@ export type MarkerData = {
   startLineNumber: number;
 };
 
+export type ShareResponse = {
+  id: string;
+};
+
 export type Translation = {
   backend: string;
   files: File[];

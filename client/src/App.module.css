@@ -46,6 +46,9 @@ a,
 }
 
 .metaTools {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
   text-align: right;
 }
 
@@ -54,6 +57,13 @@ a,
   display: flex;
   flex: 1;
   flex-direction: column;
+}
+
+.shareInfo,
+.shareInfo a {
+  /* A bit darker than white, to distinguish from buttons. */
+  color: #bbb;
+  text-decoration: none;
 }
 
 .sourceArea {

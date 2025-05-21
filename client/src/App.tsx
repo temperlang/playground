@@ -1,11 +1,19 @@
 import { Button } from "@kobalte/core/button";
-import { createSignal, onCleanup, onMount, type Component } from "solid-js";
+import {
+  createSignal,
+  onCleanup,
+  onMount,
+  Show,
+  type Component,
+} from "solid-js";
 import styles from "./App.module.css";
 import logo from "./assets/temper-logo-256.png";
 import defaultSource from "./assets/default.temper?raw";
 import { ResultPane } from "./ResultPane";
 import { TemperEditor, TemperEditorState } from "./TemperEditor";
-import type { BuildResponse, MarkerData } from "./types";
+import type { BuildResponse, ShareResponse } from "./types";
+
+const server = "http://localhost:3001";
 
 const App: Component = () => {
   let source = defaultSource;
@@ -14,6 +22,7 @@ const App: Component = () => {
     errors: [],
     translations: [],
   });
+  const [gistId, setGistId] = createSignal("");
   let editor: TemperEditorState | undefined;
   const onMountEditor = (mountedEditor: TemperEditorState) => {
     editor = mountedEditor;
@@ -22,16 +31,22 @@ const App: Component = () => {
     source = value;
     sourceVersion += 1;
     editor!.setMarkers([]);
+    // Clear any url params.
+    setGistId("");
+    const url = new URL(window.location.href);
+    url.search = "";
+    const link = url.toString();
+    history.replaceState(null, "", link);
   };
-  let postedVersion = 0;
-  const postBuild = async () => {
-    postedVersion = sourceVersion;
-    const response = await fetch("http://localhost:3001/", {
+  let builtVersion = 0;
+  const doBuild = async () => {
+    builtVersion = sourceVersion;
+    const response = await fetch(`${server}/build`, {
       method: "POST",
       body: JSON.stringify({ source }),
     });
     const buildResponse = (await response.json()) as BuildResponse;
-    if (postedVersion == sourceVersion) {
+    if (builtVersion == sourceVersion) {
       editor!.setMarkers(buildResponse.errors);
     }
     // They might come sorted, but ensure in frontend.
@@ -42,6 +57,26 @@ const App: Component = () => {
       translation.files.sort((a, b) => a.name.localeCompare(b.name));
     }
     setResponse(buildResponse);
+  };
+  let sharedVersion = 0;
+  const doShare = async () => {
+    sharedVersion = sourceVersion;
+    const response = await fetch(`${server}/share`, {
+      method: "POST",
+      body: JSON.stringify({ source }),
+    });
+    const shareResponse = (await response.json()) as ShareResponse;
+    let { id } = shareResponse;
+    // Put link on clipboard, and also update window url if source unchanged.
+    const url = new URL(window.location.href);
+    url.search = "";
+    url.searchParams.set("gist", id);
+    const link = url.toString();
+    await navigator.clipboard.writeText(link);
+    if (sharedVersion == sourceVersion) {
+      history.replaceState(null, "", link);
+    }
+    setGistId(id);
   };
   let app: HTMLDivElement;
   let workArea: HTMLDivElement;
@@ -70,10 +105,22 @@ const App: Component = () => {
       </header>
       <div class={styles.toolbar}>
         <div class={styles.devTools}>
-          <Button onClick={postBuild}>Build Temper</Button>
+          <Button onClick={doBuild}>Build Temper</Button>
         </div>
         <div class={styles.metaTools}>
-          <Button>Share</Button>
+          <Show when={gistId()}>
+            <div class={styles.shareInfo}>
+              Link copied!{" "}
+              <a
+                href={`https://gist.github.com/temperlang-play/${gistId()}`}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                (Open gist)
+              </a>
+            </div>
+          </Show>
+          <Button onClick={doShare}>Share</Button>
         </div>
       </div>
       <div ref={workArea!} class={styles.workArea}>

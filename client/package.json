@@ -12,6 +12,7 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@vitejs/plugin-basic-ssl": "^2.0.0",
     "monaco-editor": "0.48.0",
     "prettier": "catalog:",
     "typescript": "catalog:",
