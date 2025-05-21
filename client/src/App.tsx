@@ -114,13 +114,13 @@ const App: Component = () => {
         <div class={styles.metaTools}>
           <Show when={gistId()}>
             <div class={styles.shareInfo}>
-              Link copied!{" "}
+              Playground link copied!{" "}
               <a
                 href={`https://gist.github.com/temperlang-play/${gistId()}`}
                 rel="noopener noreferrer"
                 target="_blank"
               >
-                (Open gist)
+                (Gist here)
               </a>
             </div>
           </Show>
