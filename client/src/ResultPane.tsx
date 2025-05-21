@@ -2,7 +2,7 @@ import { Tabs } from "@kobalte/core/tabs";
 import { createSignal, For, onCleanup, onMount } from "solid-js";
 import { CodeView } from "./CodeView";
 import styles from "./ResultPane.module.css";
-import { backendInfos, type BuildResponse } from "./types";
+import { backendInfos, type BuildResponse } from "./support";
 
 export type ResultPaneProps = {
   response: BuildResponse;

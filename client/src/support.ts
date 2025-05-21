@@ -1,3 +1,8 @@
+export type BackendInfo = {
+  key: string;
+  name: string;
+};
+
 export const backendInfos: { [key: string]: BackendInfo } = Object.assign(
   {},
   ...[
@@ -9,11 +14,6 @@ export const backendInfos: { [key: string]: BackendInfo } = Object.assign(
     { key: "rust", name: "Rust" },
   ].map((info) => ({ [info.key]: info })),
 );
-
-export type BackendInfo = {
-  key: string;
-  name: string;
-};
 
 export type BuildRequest = {
   source: string;
@@ -27,6 +27,17 @@ export type BuildResponse = {
 export type File = {
   name: string;
   content: string;
+};
+
+export const loadGist = async (id: string): Promise<string> => {
+  const response = await fetch(`https://api.github.com/gists/${id}`);
+  if (!response.ok) {
+    throw new Error(response.statusText);
+  }
+  const gist = await response.json();
+  const file = gist.files["playground.temper"];
+  // Presume not truncated since we also limit our sizes.
+  return file.content;
 };
 
 // Subset of https://microsoft.github.io/monaco-editor/typedoc/interfaces/editor.IMarkerData.html

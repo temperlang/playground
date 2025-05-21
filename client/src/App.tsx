@@ -10,13 +10,17 @@ import styles from "./App.module.css";
 import logo from "./assets/temper-logo-256.png";
 import defaultSource from "./assets/default.temper?raw";
 import { ResultPane } from "./ResultPane";
+import { loadGist, type BuildResponse, type ShareResponse } from "./support";
 import { TemperEditor, TemperEditorState } from "./TemperEditor";
-import type { BuildResponse, ShareResponse } from "./types";
 
 const server = "http://localhost:3001";
+const initialSource = await (() => {
+  const gistId = new URLSearchParams(location.search).get("gist");
+  return gistId ? loadGist(gistId) : defaultSource;
+})();
 
 const App: Component = () => {
-  let source = defaultSource;
+  let source = initialSource;
   let sourceVersion = 0;
   const [response, setResponse] = createSignal<BuildResponse>({
     errors: [],
@@ -33,7 +37,7 @@ const App: Component = () => {
     editor!.setMarkers([]);
     // Clear any url params.
     setGistId("");
-    const url = new URL(window.location.href);
+    const url = new URL(location.href);
     url.search = "";
     const link = url.toString();
     history.replaceState(null, "", link);
@@ -128,7 +132,7 @@ const App: Component = () => {
           <TemperEditor
             onChange={onSourceChange}
             onMount={onMountEditor}
-            value={defaultSource}
+            value={source}
           />
         </div>
         <div class={styles.resultArea}>

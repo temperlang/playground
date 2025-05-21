@@ -1,6 +1,6 @@
 import * as monacoEditor from "monaco-editor";
 import { MonacoEditor as EditorComponent } from "solid-monaco";
-import { MarkerData } from "./types";
+import type { MarkerData } from "./support";
 
 export type Monaco = typeof monacoEditor;
 export type MonacoEditor = monacoEditor.editor.IStandaloneCodeEditor;
