@@ -19,6 +19,7 @@ const main = async () => {
     return context.text("Running. Post for actual processing.");
   });
   app.post("/build", async (context) => {
+    console.log("build requested");
     const request = (await context.req.json()) as BuildRequest;
     validate(request);
     const response = (await queue.add(async () => {
@@ -27,6 +28,7 @@ const main = async () => {
     return context.json(response);
   });
   app.post("/share", async (context) => {
+    console.log("share requested");
     const request = (await context.req.json()) as BuildRequest;
     validate(request);
     const response = await share(request);

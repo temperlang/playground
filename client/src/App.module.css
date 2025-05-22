@@ -11,6 +11,7 @@ a,
 }
 
 .devTools {
+  align-items: center;
   display: flex;
   flex: 1;
   flex-direction: row;
@@ -50,6 +51,7 @@ a,
 }
 
 .metaTools {
+  align-items: center;
   display: flex;
   flex-direction: row;
   gap: 1rem;
@@ -68,10 +70,6 @@ a,
   /* A bit darker than white, to distinguish from buttons. */
   color: #bbb;
   text-decoration: none;
-}
-
-.sourceArea {
-  /* flex: 1; */
 }
 
 .title {

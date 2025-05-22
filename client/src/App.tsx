@@ -17,21 +17,24 @@ import {
   type ShareResponse,
 } from "./support";
 import { TemperEditor, TemperEditorState } from "./TemperEditor";
+import { Spinner } from "./Spinner";
 
 const server = "http://localhost:3001";
 const initialSource = await (() => {
-  const gistId = new URLSearchParams(location.search).get("gist");
+  const gistId = new URLSearchParams(window.location.search).get("gist");
   return gistId ? loadGist(gistId) : defaultSource;
 })();
 
 const App: Component = () => {
   let source = initialSource;
   let sourceVersion = 0;
+  const [building, setBuilding] = createSignal(false);
+  const [gistId, setGistId] = createSignal("");
   const [response, setResponse] = createSignal<BuildResponse>({
     errors: [],
     translations: [],
   });
-  const [gistId, setGistId] = createSignal("");
+  const [sharing, setSharing] = createSignal(false);
   let editor: TemperEditorState | undefined;
   const onMountEditor = (mountedEditor: TemperEditorState) => {
     editor = mountedEditor;
@@ -42,50 +45,73 @@ const App: Component = () => {
     editor!.setMarkers([]);
     // Clear any url params.
     setGistId("");
-    const url = new URL(location.href);
+    const url = new URL(window.location.href);
     url.search = "";
     const link = url.toString();
     history.replaceState(null, "", link);
   };
   let builtVersion = 0;
   const doBuild = async () => {
-    builtVersion = sourceVersion;
-    const response = await fetch(`${server}/build`, {
-      method: "POST",
-      body: JSON.stringify({ source }),
-    });
-    const buildResponse = (await response.json()) as BuildResponse;
-    if (builtVersion == sourceVersion) {
-      editor!.setMarkers(buildResponse.errors);
+    setBuilding(true);
+    try {
+      builtVersion = sourceVersion;
+      const response = await fetch(`${server}/build`, {
+        method: "POST",
+        body: JSON.stringify({ source }),
+      });
+      const buildResponse = (await response.json()) as BuildResponse;
+      if (builtVersion == sourceVersion) {
+        editor!.setMarkers(buildResponse.errors);
+      }
+      // They might come sorted, but ensure in frontend.
+      buildResponse.translations.sort((a, b) =>
+        a.backend.localeCompare(b.backend),
+      );
+      for (const translation of buildResponse.translations) {
+        translation.files.sort((a, b) => a.name.localeCompare(b.name));
+      }
+      setResponse(buildResponse);
+    } finally {
+      setBuilding(false);
     }
-    // They might come sorted, but ensure in frontend.
-    buildResponse.translations.sort((a, b) =>
-      a.backend.localeCompare(b.backend),
-    );
-    for (const translation of buildResponse.translations) {
-      translation.files.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    setResponse(buildResponse);
   };
   let sharedVersion = 0;
   const doShare = async () => {
-    sharedVersion = sourceVersion;
-    const response = await fetch(`${server}/share`, {
-      method: "POST",
-      body: JSON.stringify({ source }),
-    });
-    const shareResponse = (await response.json()) as ShareResponse;
-    let { id } = shareResponse;
-    // Put link on clipboard, and also update window url if source unchanged.
-    const url = new URL(window.location.href);
-    url.search = "";
-    url.searchParams.set("gist", id);
-    const link = url.toString();
-    await navigator.clipboard.writeText(link);
-    if (sharedVersion == sourceVersion) {
-      history.replaceState(null, "", link);
+    setSharing(true);
+    try {
+      sharedVersion = sourceVersion;
+      const response = await fetch(`${server}/share`, {
+        method: "POST",
+        body: JSON.stringify({ source }),
+      });
+      const shareResponse = (await response.json()) as ShareResponse;
+      let { id } = shareResponse;
+      // Put link on clipboard, and also update window url if source unchanged.
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.searchParams.set("gist", id);
+      const link = url.toString();
+      await window.navigator.clipboard.writeText(link);
+      if (sharedVersion == sourceVersion) {
+        history.replaceState(null, "", link);
+      }
+      setGistId(id);
+    } finally {
+      setSharing(false);
     }
-    setGistId(id);
+  };
+  const keydown = (event: KeyboardEvent) => {
+    if (event.ctrlKey && !event.repeat) {
+      let action = {
+        // I tried hotkeys for share also, but they seemed more trouble than good.
+        // In particular, Ctrl+S is out of control in Firefox.
+        Enter: doBuild,
+      }[event.key];
+      if (action) {
+        event.preventDefault();
+        action();
+      }
+    }
   };
   let app: HTMLDivElement;
   let workArea: HTMLDivElement;
@@ -103,10 +129,12 @@ const App: Component = () => {
     workArea!.style.height = `${total - used}px`;
   };
   onMount(() => {
+    window.addEventListener("keydown", keydown);
     window.addEventListener("resize", resize);
     requestAnimationFrame(resize);
   });
   onCleanup(() => {
+    window.removeEventListener("keydown", keydown);
     window.removeEventListener("resize", resize);
   });
   return (
@@ -117,30 +145,52 @@ const App: Component = () => {
       </header>
       <div class={styles.toolbar}>
         <div class={styles.devTools}>
-          <Button onClick={doBuild} title="(or Ctrl+Enter in editor)">
+          <Button
+            onClick={doBuild}
+            title="Translate Temper source (Ctrl+Enter)"
+          >
             Build Temper
           </Button>
+          <Show when={building()}>
+            <Spinner />
+          </Show>
         </div>
         <div class={styles.metaTools}>
           <Show when={gistId()}>
             <div class={styles.shareInfo}>
-              Playground link copied!{" "}
+              <a
+                href={window.location.href}
+                rel="noopener noreferrer"
+                target="_blank"
+                title="Current Temper source (link already copied to clipboard)"
+              >
+                Playground link
+              </a>{" "}
+              copied!{" "}
               <a
                 href={`https://gist.github.com/temperlang-play/${gistId()}`}
                 rel="noopener noreferrer"
                 target="_blank"
+                title="Backing storage for shared Temper source"
               >
                 (Gist here)
               </a>
             </div>
           </Show>
-          <Button onClick={doShare}>Share</Button>
+          <Show when={sharing()}>
+            <Spinner />
+          </Show>
+          <Button
+            onClick={doShare}
+            title="Save Temper source and copy link for sharing"
+          >
+            Share
+          </Button>
         </div>
       </div>
       <div ref={workArea!} class={styles.workArea}>
         <div class={styles.sourceArea}>
           <TemperEditor
-            onBuild={doBuild}
             onChange={onSourceChange}
             onMount={onMountEditor}
             value={source}
