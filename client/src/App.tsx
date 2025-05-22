@@ -10,7 +10,12 @@ import styles from "./App.module.css";
 import logo from "./assets/temper-logo-256.png";
 import defaultSource from "./assets/default.temper?raw";
 import { ResultPane } from "./ResultPane";
-import { loadGist, type BuildResponse, type ShareResponse } from "./support";
+import {
+  distributeWidth,
+  loadGist,
+  type BuildResponse,
+  type ShareResponse,
+} from "./support";
 import { TemperEditor, TemperEditorState } from "./TemperEditor";
 
 const server = "http://localhost:3001";
@@ -85,11 +90,14 @@ const App: Component = () => {
   let app: HTMLDivElement;
   let workArea: HTMLDivElement;
   const resize = () => {
+    // Horizontal
+    distributeWidth(workArea!, styles.divider);
+    // Vertical
     const total = window.innerHeight;
     let used = 0;
-    for (const kid of app!.childNodes) {
+    for (const kid of app!.childNodes as Iterable<HTMLElement>) {
       if (kid !== workArea!) {
-        used += (kid as HTMLElement).getBoundingClientRect().height;
+        used += kid.getBoundingClientRect().height;
       }
     }
     workArea!.style.height = `${total - used}px`;
@@ -109,7 +117,9 @@ const App: Component = () => {
       </header>
       <div class={styles.toolbar}>
         <div class={styles.devTools}>
-          <Button onClick={doBuild}>Build Temper</Button>
+          <Button onClick={doBuild} title="(or Ctrl+Enter in editor)">
+            Build Temper
+          </Button>
         </div>
         <div class={styles.metaTools}>
           <Show when={gistId()}>
@@ -130,11 +140,13 @@ const App: Component = () => {
       <div ref={workArea!} class={styles.workArea}>
         <div class={styles.sourceArea}>
           <TemperEditor
+            onBuild={doBuild}
             onChange={onSourceChange}
             onMount={onMountEditor}
             value={source}
           />
         </div>
+        <div class={styles.divider} />
         <div class={styles.resultArea}>
           <ResultPane response={response()}></ResultPane>
         </div>

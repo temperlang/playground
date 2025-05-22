@@ -24,6 +24,23 @@ export type BuildResponse = {
   translations: Translation[];
 };
 
+export const distributeWidth = (box: HTMLElement, dividerClass: string) => {
+  const total = window.innerWidth;
+  let used = 0;
+  const panes = [] as HTMLElement[];
+  for (const kid of box.childNodes as Iterable<HTMLElement>) {
+    if (kid.className.indexOf(dividerClass) >= 0) {
+      used += kid.getBoundingClientRect().width;
+    } else {
+      panes.push(kid);
+    }
+  }
+  const each = (total - used) / panes.length;
+  for (const pane of panes) {
+    pane.style.width = `${each}px`;
+  }
+};
+
 export type File = {
   name: string;
   content: string;

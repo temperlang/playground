@@ -6,6 +6,7 @@ export type Monaco = typeof monacoEditor;
 export type MonacoEditor = monacoEditor.editor.IStandaloneCodeEditor;
 
 export type TemperEditorProps = {
+  onBuild?: () => void;
   onChange: (value: string) => void;
   onMount?: (state: TemperEditorState) => void;
   value: string;
@@ -28,6 +29,9 @@ export const TemperEditor = (props: TemperEditorProps) => {
       },
     });
     monaco.editor.setTheme("temper-dark");
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
+      props.onBuild?.call(undefined);
+    });
     editor.updateOptions({ contextmenu: false, minimap: { enabled: false } });
     props.onMount?.call(undefined, {
       setMarkers(markers: MarkerData[]) {

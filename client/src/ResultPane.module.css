@@ -2,7 +2,7 @@
   align-self: flex-start;
   flex: 1;
   overflow: auto;
-  /* padding: 0 1rem; */
+  width: 100%;
 }
 
 .codeBox {

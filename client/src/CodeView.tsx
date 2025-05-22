@@ -27,9 +27,14 @@ export const CodeView = (props: CodeViewProps) => {
         margin: "0",
         "text-align": "left",
         "white-space": "pre-wrap",
+        "text-wrap": "nowrap",
       }}
     >
-      <code ref={code!} class={`language-${props.language}`}>
+      <code
+        ref={code!}
+        class={`language-${props.language}`}
+        style={{ overflow: "visible" }}
+      >
         {props.value}
       </code>
     </pre>

@@ -17,6 +17,10 @@ a,
   gap: 1rem;
 }
 
+.divider {
+  width: 0.2rem;
+}
+
 .footer {
   display: flex;
   flex-direction: row;
@@ -55,7 +59,7 @@ a,
 .resultArea {
   /* border: 1px solid red; */
   display: flex;
-  flex: 1;
+  /* flex: 1; */
   flex-direction: column;
 }
 
@@ -67,7 +71,7 @@ a,
 }
 
 .sourceArea {
-  flex: 1;
+  /* flex: 1; */
 }
 
 .title {
@@ -103,5 +107,4 @@ a,
 .workArea {
   display: flex;
   flex-direction: row;
-  gap: 0.2rem;
 }
