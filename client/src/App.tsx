@@ -13,6 +13,8 @@ import { ResultPane } from "./ResultPane";
 import {
   distributeWidth,
   loadGist,
+  manageResponse,
+  RequestStatus,
   type BuildResponse,
   type ShareResponse,
 } from "./support";
@@ -28,13 +30,13 @@ const initialSource = await (() => {
 const App: Component = () => {
   let source = initialSource;
   let sourceVersion = 0;
-  const [building, setBuilding] = createSignal(false);
+  const [buildStatus, setBuildStatus] = createSignal<RequestStatus>("");
   const [gistId, setGistId] = createSignal("");
   const [response, setResponse] = createSignal<BuildResponse>({
     errors: [],
     translations: [],
   });
-  const [sharing, setSharing] = createSignal(false);
+  const [shareStatus, setShareStatus] = createSignal<RequestStatus>("");
   let editor: TemperEditorState | undefined;
   const onMountEditor = (mountedEditor: TemperEditorState) => {
     editor = mountedEditor;
@@ -43,7 +45,13 @@ const App: Component = () => {
     source = value;
     sourceVersion += 1;
     editor!.setMarkers([]);
-    // Clear any url params.
+    // Clear ui state for changed source.
+    if (buildStatus() == "error") {
+      setBuildStatus("");
+    }
+    if (shareStatus() == "error") {
+      setShareStatus("");
+    }
     setGistId("");
     const url = new URL(window.location.href);
     url.search = "";
@@ -52,13 +60,21 @@ const App: Component = () => {
   };
   let builtVersion = 0;
   const doBuild = async () => {
-    setBuilding(true);
-    try {
-      builtVersion = sourceVersion;
-      const response = await fetch(`${server}/build`, {
+    // TODO Unify build and share status handling?
+    // TODO Understand when multiple requests are out?
+    setBuildStatus("loading");
+    builtVersion = sourceVersion;
+    const response = await manageResponse(
+      fetch(`${server}/build`, {
         method: "POST",
         body: JSON.stringify({ source }),
-      });
+      }),
+    );
+    if (!response) {
+      setBuildStatus("error");
+      return;
+    }
+    try {
       const buildResponse = (await response.json()) as BuildResponse;
       if (builtVersion == sourceVersion) {
         editor!.setMarkers(buildResponse.errors);
@@ -72,18 +88,24 @@ const App: Component = () => {
       }
       setResponse(buildResponse);
     } finally {
-      setBuilding(false);
+      setBuildStatus("");
     }
   };
   let sharedVersion = 0;
   const doShare = async () => {
-    setSharing(true);
-    try {
-      sharedVersion = sourceVersion;
-      const response = await fetch(`${server}/share`, {
+    setShareStatus("loading");
+    sharedVersion = sourceVersion;
+    const response = await manageResponse(
+      fetch(`${server}/share`, {
         method: "POST",
         body: JSON.stringify({ source }),
-      });
+      }),
+    );
+    if (!response) {
+      setShareStatus("error");
+      return;
+    }
+    try {
       const shareResponse = (await response.json()) as ShareResponse;
       let { id } = shareResponse;
       // Put link on clipboard, and also update window url if source unchanged.
@@ -97,7 +119,7 @@ const App: Component = () => {
       }
       setGistId(id);
     } finally {
-      setSharing(false);
+      setShareStatus("");
     }
   };
   const keydown = (event: KeyboardEvent) => {
@@ -151,7 +173,10 @@ const App: Component = () => {
           >
             Build Temper
           </Button>
-          <Show when={building()}>
+          <Show when={buildStatus() == "error"}>
+            <div>❌</div>
+          </Show>
+          <Show when={buildStatus() == "loading"}>
             <Spinner />
           </Show>
         </div>
@@ -177,7 +202,10 @@ const App: Component = () => {
               </a>
             </div>
           </Show>
-          <Show when={sharing()}>
+          <Show when={shareStatus() == "error"}>
+            <div>❌</div>
+          </Show>
+          <Show when={shareStatus() == "loading"}>
             <Spinner />
           </Show>
           <Button

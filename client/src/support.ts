@@ -57,6 +57,21 @@ export const loadGist = async (id: string): Promise<string> => {
   return file.content;
 };
 
+export const manageResponse = async (
+  promise: Promise<Response>,
+): Promise<Response | undefined> => {
+  let response: Response;
+  try {
+    response = await promise;
+    if (response.ok) {
+      return response;
+    }
+    console.log(response);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 // Subset of https://microsoft.github.io/monaco-editor/typedoc/interfaces/editor.IMarkerData.html
 export type MarkerData = {
   endColumn: number;
@@ -66,6 +81,8 @@ export type MarkerData = {
   startColumn: number;
   startLineNumber: number;
 };
+
+export type RequestStatus = "" | "error" | "loading";
 
 export type ShareResponse = {
   id: string;
