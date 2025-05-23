@@ -1,0 +1,3 @@
+play-server.temperlang.dev {
+  reverse_proxy app:3001
+}

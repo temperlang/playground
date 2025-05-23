@@ -29,21 +29,22 @@ const initialSource = await (() => {
 
 const App: Component = () => {
   let source = initialSource;
-  let sourceVersion = 0;
   const [buildStatus, setBuildStatus] = createSignal<RequestStatus>("");
+  const [builtVersion, setBuiltVersion] = createSignal(-1);
   const [gistId, setGistId] = createSignal("");
   const [response, setResponse] = createSignal<BuildResponse>({
     errors: [],
     translations: [],
   });
   const [shareStatus, setShareStatus] = createSignal<RequestStatus>("");
+  const [sourceVersion, setSourceVersion] = createSignal(0);
   let editor: TemperEditorState | undefined;
   const onMountEditor = (mountedEditor: TemperEditorState) => {
     editor = mountedEditor;
   };
   const onSourceChange = (value: string) => {
     source = value;
-    sourceVersion += 1;
+    setSourceVersion(sourceVersion() + 1);
     editor!.setMarkers([]);
     // Clear ui state for changed source.
     if (buildStatus() == "error") {
@@ -58,12 +59,11 @@ const App: Component = () => {
     const link = url.toString();
     history.replaceState(null, "", link);
   };
-  let builtVersion = 0;
   const doBuild = async () => {
     // TODO Unify build and share status handling?
     // TODO Understand when multiple requests are out?
     setBuildStatus("loading");
-    builtVersion = sourceVersion;
+    setBuiltVersion(sourceVersion);
     const response = await manageResponse(
       fetch(`${server}/build`, {
         method: "POST",
@@ -76,7 +76,7 @@ const App: Component = () => {
     }
     try {
       const buildResponse = (await response.json()) as BuildResponse;
-      if (builtVersion == sourceVersion) {
+      if (builtVersion() == sourceVersion()) {
         editor!.setMarkers(buildResponse.errors);
       }
       // They might come sorted, but ensure in frontend.
@@ -91,10 +91,11 @@ const App: Component = () => {
       setBuildStatus("");
     }
   };
-  let sharedVersion = 0;
+  // Not a signal because it ends up tied to gistId signal instead.
+  let sharedVersion = -1;
   const doShare = async () => {
     setShareStatus("loading");
-    sharedVersion = sourceVersion;
+    sharedVersion = sourceVersion();
     const response = await manageResponse(
       fetch(`${server}/share`, {
         method: "POST",
@@ -114,7 +115,7 @@ const App: Component = () => {
       url.searchParams.set("gist", id);
       const link = url.toString();
       await window.navigator.clipboard.writeText(link);
-      if (sharedVersion == sourceVersion) {
+      if (sharedVersion == sourceVersion()) {
         history.replaceState(null, "", link);
       }
       setGistId(id);
@@ -168,8 +169,13 @@ const App: Component = () => {
       <div class={styles.toolbar}>
         <div class={styles.devTools}>
           <Button
+            disabled={builtVersion() == sourceVersion()}
             onClick={doBuild}
-            title="Translate Temper source (Ctrl+Enter)"
+            title={
+              builtVersion() == sourceVersion()
+                ? "Current version already built"
+                : "Translate Temper source (Ctrl+Enter)"
+            }
           >
             Build Temper
           </Button>
@@ -209,8 +215,13 @@ const App: Component = () => {
             <Spinner />
           </Show>
           <Button
+            disabled={gistId().length > 0}
             onClick={doShare}
-            title="Save Temper source and copy link for sharing"
+            title={
+              gistId()
+                ? "Current version already shared"
+                : "Save Temper source and copy link for sharing"
+            }
           >
             Share
           </Button>

@@ -13,6 +13,8 @@ RUN bash <<'END'
     pnpm install
 END
 
+LABEL org.opencontainers.image.source=https://github.com/temperlang/temper-prepublic
+
 EXPOSE 3001
 WORKDIR /home/temper/work/server
 # Could also build above then run built below, but meh. We don't tsx watch.

@@ -1,5 +1,7 @@
+Caddyfile
 Containerfile
 dist/
+docker-compose.yml
 .dockerignore
 .git/
 .gitignore

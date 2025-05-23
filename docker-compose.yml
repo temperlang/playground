@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  app:
+    image: ghcr.io/temperlang/playground
+    environment:
+      - TEMPER_PLAY_GITHUB
+    expose:
+      - "3001"
+
+  caddy:
+    image: caddy:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    depends_on:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:
