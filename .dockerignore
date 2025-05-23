@@ -1,0 +1,8 @@
+Containerfile
+dist/
+.dockerignore
+.git/
+.gitignore
+*-lock.*
+ignore/
+node_modules/
