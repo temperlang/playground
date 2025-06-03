@@ -13,7 +13,7 @@ RUN bash <<'END'
     pnpm install
 END
 
-LABEL org.opencontainers.image.source=https://github.com/temperlang/temper-prepublic
+LABEL org.opencontainers.image.source=https://github.com/temperlang/playground
 
 EXPOSE 3001
 WORKDIR /home/temper/work/server
