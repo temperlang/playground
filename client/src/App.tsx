@@ -21,7 +21,10 @@ import {
 import { TemperEditor, TemperEditorState } from "./TemperEditor";
 import { Spinner } from "./Spinner";
 
-const server = "http://localhost:3001";
+// SERVER_URL supplied by vite.
+declare const SERVER_URL: string;
+const server = SERVER_URL;
+
 const initialSource = await (() => {
   const gistId = new URLSearchParams(window.location.search).get("gist");
   return gistId ? loadGist(gistId) : defaultSource;
