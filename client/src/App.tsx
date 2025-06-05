@@ -249,6 +249,10 @@ const App: Component = () => {
         <a href="https://temperlang.github.io/tld/legal/eula/">
           End User License Agreement (EULA)
         </a>
+        &nbsp;|&nbsp;
+        <a href="https://temperlang.github.io/tld/legal/playground-terms/">
+          Terms of Use and Conditions (ToU)
+        </a>
       </div>
     </div>
   );
