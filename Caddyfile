@@ -1,3 +1,0 @@
-playground.temper.systems {
-  reverse_proxy app:3001
-}
