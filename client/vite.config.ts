@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
   define:
     mode == "production"
       ? {
-          SERVER_URL: JSON.stringify("https://playground.temper.systems"),
+          SERVER_URL: JSON.stringify("https://play.temperlang.dev"),
         }
       : {
           SERVER_URL: JSON.stringify("http://localhost:3001"),
